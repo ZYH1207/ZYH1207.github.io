@@ -7,7 +7,7 @@ export default hopeTheme({
   hostname: "https://mister-hope.github.io",
 
   author: {
-    name: "Mr.Hope",
+    name: "Bird",
     url: "https://mister-hope.com",
   },
 
@@ -35,7 +35,7 @@ export default hopeTheme({
     intro: "/intro.html",
     medias: {
       Baidu: "https://example.com",
-      BiliBili: "https://example.com",
+      BiliBili: "https://space.bilibili.com/1951997394?spm_id_from=333.1007.0.0",
       Bitbucket: "https://example.com",
       Dingding: "https://example.com",
       Discord: "https://example.com",
@@ -45,7 +45,7 @@ export default hopeTheme({
       Facebook: "https://example.com",
       Flipboard: "https://example.com",
       Gitee: "https://example.com",
-      GitHub: "https://example.com",
+      GitHub: "https://github.com/ZYH1207",
       Gitlab: "https://example.com",
       Gmail: "mailto:info@example.com",
       Instagram: "https://example.com",
