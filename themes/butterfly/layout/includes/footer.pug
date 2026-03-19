@@ -22,18 +22,8 @@ if nav
       - const sinceYear = owner.since
       span.copyright
         if sinceYear && sinceYear != currentYear
-          != `&copy;&nbsp;${sinceYear} - ${currentYear} By ${config.author}`
+          != `&copy;&nbsp;${sinceYear} - ${currentYear} ${config.author} 版权所有`
         else
-          != `&copy;&nbsp;${currentYear} By ${config.author}`
-    if copyright.enable
-      - const v = copyright.version ? getVersion() : false
-      span.framework-info
-        if owner.enable && nav
-          span.footer-separator |
-        span= _p('footer.framework') + ' '
-        a(href='https://hexo.io')= `Hexo${ v ? ' ' + v.hexo : '' }`
-        span.footer-separator |
-        span= _p('footer.theme') + ' '
-        a(href='https://github.com/jerryc127/hexo-theme-butterfly')= `Butterfly${ v ? ' ' + v.theme : '' }`
+          != `&copy;&nbsp;${currentYear} ${config.author} 保留所有权利`
   if theme.footer.custom_text
     .footer_custom_text!= theme.footer.custom_text
