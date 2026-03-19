@@ -1,0 +1,57 @@
+# 导航栏
+nav:
+  logo:
+  display_title: true
+  fixed: false
+
+# 菜单导航
+menu:
+  首页: / || fas fa-home
+  归档: /archives/ || fas fa-archive
+  标签: /tags/ || fas fa-tags
+  分类: /categories/ || fas fa-folder-open
+  友链: /link/ || fas fa-link
+  关于: /about/ || fas fa-heart
+
+# 社交图标
+social:
+  fab fa-github: https://github.com/ZYH1207 || Github || '#24292e'
+  fas fa-envelope: mailto:2385377554@qq.com || Email || '#24292e'
+
+# 网站图标
+favicon: /img/favicon.ico
+
+# 头像
+avatar:
+  img: /img/avatar.png
+  effect: false
+
+# 页面头图
+index_img: /img/background.jpg
+default_top_img: /img/background.jpg
+archive_img: /img/background.jpg
+tag_img: /img/background.jpg
+category_img: /img/background.jpg
+
+# 文章封面
+cover:
+  index_enable: true
+  aside_enable: false
+  archives_enable: false
+  position: left
+  default_cover:
+    - /img/background.jpg
+
+# 404页面
+error_404:
+  enable: true
+  subtitle: '页面没有找到'
+  background: https://i.loli.net/2020/05/19/aKOcLiyPl2JQdFD.png
+
+# 页脚设置
+footer:
+  owner:
+    enable: true
+    since: 2026
+  custom_text:
+  copyright: true

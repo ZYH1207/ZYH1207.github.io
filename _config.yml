@@ -101,8 +101,23 @@ theme: butterfly
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
+
   type: git
   repo: git@github.com:ZYH1207/ZYH1207.github.io.git
   branch: gh-pages
   message: "Site updated: {{ now('YYYY-MM-DD HH:mm:ss') }}"
+  
+  
+  
+  
+
+
+# RSS 订阅配置
+feed:
+  enable: true
+  type: atom # 订阅格式，推荐 atom
+  path: atom.xml # 生成的 RSS 文件名称
+  limit: 20 # 最多展示最新多少篇文章
+  content: false # false = 只输出摘要，true = 输出全文
+  
   
