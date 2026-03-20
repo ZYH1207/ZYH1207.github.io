@@ -54,19 +54,17 @@ footer:
     enable: true
     since: 2026
   custom_text:
-  copyright: 
+  copyright: true
 
-
+# 本地搜索
 local_search:
-  enable: true # 启用本地搜索
-  preload: true # 页面加载时预加载数据
+  enable: true
+  preload: true
   top_n_per_article: 1
   unescape: false
   CDN:
-  
 
 # 博客配色
-# ======================
 theme_color:
   enable: true
   main: "#49B1F5"
@@ -82,26 +80,44 @@ theme_color:
   blockquote_padding_color: "#49b1f5"
   blockquote_background_color: "#49b1f5"
   scrollbar_color: "#49b1f5"
-  meta_theme_color_light: "ffffff"
+  meta_theme_color_light: "#ffffff"
   meta_theme_color_dark: "#0d0d0d"
 
-# ======================
 # 博客背景
-# ======================
 background: "#fbfdff"
 
-# ======================
 # 博客字体
-# ======================
 font:
   global-font-size: 15px
-  code-font-size: 
+  code-font-size:
   font-family: 'Noto Sans SC'
   code-font-family:
 
-# ======================
-# CDN 替换为 unpkg（解决加载失败）
-# ======================
+# CDN
 CDN:
   internal_provider: local
   third_party_provider: unpkg
+
+# Code Blocks 代码块
+code_blocks:
+  theme: pale night   # 主题：darker / pale night / light / ocean / false
+  macStyle: true      # Mac 窗口风格（顶部三个圆点）
+  height_limit: 800   # 代码块最大高度（px）
+  word_wrap: true     # 自动换行
+  copy: true          # 复制按钮
+  language: true      # 显示语言名称
+  shrink: false       # 是否默认收缩代码块
+  fullpage: false     # 全屏按钮
+  
+  
+# 首页副标题
+subtitle:
+  enable: true
+  effect: true
+  typed_option:
+  source: false
+  sub:
+    - 你当像鸟飞往你的山
+    - 青山不改，绿水长流
+    - Perfect in your own way
+    - Keep the Blue Flag Flying High
