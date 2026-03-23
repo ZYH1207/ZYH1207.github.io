@@ -1,0 +1,17 @@
+/* 页脚背景设置 */
+#footer {
+  /* 替换为你图片的链接，可以是本地路径 /img/xxx.jpg 或网络链接 */
+  background: url(/img/background.jpg) no-repeat center center;
+  /* 让背景图铺满 */
+  background-size: cover;
+  /* 给图片加一点暗色遮罩，确保白色文字看得清 */
+  background-color: rgba(0, 0, 0, 0.5);
+  background-blend-mode: multiply;
+  /* 移除原有的透明度或背景色 */
+  border: none;
+}
+
+/* 如果你想让页脚高一点，可以调整内边距 */
+#footer-wrap {
+  padding: 40px 20px;
+}
