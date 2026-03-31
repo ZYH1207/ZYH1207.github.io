@@ -1,0 +1,271 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>动态规划 | Bird的个人博客</title><meta name="author" content="Cole"><meta name="copyright" content="Cole"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="动态规划">
+<meta property="og:type" content="article">
+<meta property="og:title" content="动态规划">
+<meta property="og:url" content="https://zyh1207.github.io/2026/03/31/%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92/index.html">
+<meta property="og:site_name" content="Bird的个人博客">
+<meta property="og:description" content="动态规划">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zyh1207.github.io/2026/03/31/%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92/fm.png">
+<meta property="article:published_time" content="2026-03-31T03:10:24.000Z">
+<meta property="article:modified_time" content="2026-03-31T03:17:08.928Z">
+<meta property="article:author" content="Cole">
+<meta property="article:tag" content="算法">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://zyh1207.github.io/2026/03/31/%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92/fm.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "动态规划",
+  "url": "https://zyh1207.github.io/2026/03/31/%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92/",
+  "image": "https://zyh1207.github.io/2026/03/31/%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92/fm.png",
+  "datePublished": "2026-03-31T03:10:24.000Z",
+  "dateModified": "2026-03-31T03:17:08.928Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cole",
+      "url": "https://ZYH1207.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://zyh1207.github.io/2026/03/31/%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92/index.html"><link rel="preconnect" href="//unpkg.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":null,"highlightCopy":true,"highlightLang":true,"highlightHeightLimit":800,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://unpkg.com/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '动态规划',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="Bird的个人博客" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background-color: #fbfdff;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">4</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/2026/03/31/%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92/fm.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Bird的个人博客</span></a><a class="nav-page-title" href="/"><span class="site-name">动态规划</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">动态规划</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-03-31T03:10:24.000Z" title="发表于 2026-03-31 11:10:24">2026-03-31</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-03-31T03:17:08.928Z" title="更新于 2026-03-31 11:17:08">2026-03-31</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%AE%97%E6%B3%95/">算法</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="动态规划（DP）核心原理-解题模板-经典例题详解"><a href="#动态规划（DP）核心原理-解题模板-经典例题详解" class="headerlink" title="动态规划（DP）核心原理+解题模板+经典例题详解"></a>动态规划（DP）核心原理+解题模板+经典例题详解</h1><p>动态规划（Dynamic Programming，简称DP）是算法中解决<strong>最优子结构问题</strong>的核心方法，专门解决暴力递归重复计算、效率极低的痛点问题。</p>
+<hr>
+<h2 id="一、动态规划到底是什么？"><a href="#一、动态规划到底是什么？" class="headerlink" title="一、动态规划到底是什么？"></a>一、动态规划到底是什么？</h2><p>核心思想：把复杂问题拆分为若干个子问题，<strong>缓存&#x2F;存储子问题的解</strong>，避免重复计算，最终推导出原问题的最优解。<br>本质：<strong>空间换时间</strong>，通过数组&#x2F;哈希表存储子问题结果，消除递归中的重复计算。</p>
+<hr>
+<h2 id="二、DP适用的三大必要条件（判断标准）"><a href="#二、DP适用的三大必要条件（判断标准）" class="headerlink" title="二、DP适用的三大必要条件（判断标准）"></a>二、DP适用的三大必要条件（判断标准）</h2><p>一道题目能使用动态规划，必须<strong>同时满足</strong>以下3个条件：</p>
+<ol>
+<li><strong>重叠子问题</strong><br>子问题会被多次重复计算（例：递归求斐波那契数，F(5)依赖F(4)、F(3)，F(4)又依赖F(3)，F(3)被重复计算）。</li>
+<li><strong>最优子结构</strong><br>原问题的最优解，可以由子问题的最优解推导得出。</li>
+<li><strong>无后效性</strong><br>子问题的解一旦确定，后续决策不会改变该结果；仅关注子问题的结果，无需关心其求解过程。</li>
+</ol>
+<hr>
+<h2 id="三、DP标准解题五步法（万能模板）"><a href="#三、DP标准解题五步法（万能模板）" class="headerlink" title="三、DP标准解题五步法（万能模板）"></a>三、DP标准解题五步法（万能模板）</h2><p>这是所有DP题目的<strong>固定解题流程</strong>，按步骤执行即可理清思路，以<strong>斐波那契数列</strong>为例讲解：</p>
+<h3 id="步骤1：确定状态"><a href="#步骤1：确定状态" class="headerlink" title="步骤1：确定状态"></a>步骤1：确定状态</h3><p>定义<code>dp[i]/dp[i][j]</code>的含义（<strong>最关键步骤</strong>）<br>例：<code>dp[i]</code> 表示第i个斐波那契数的值</p>
+<h3 id="步骤2：确定状态转移方程（递推公式）"><a href="#步骤2：确定状态转移方程（递推公式）" class="headerlink" title="步骤2：确定状态转移方程（递推公式）"></a>步骤2：确定状态转移方程（递推公式）</h3><p>写出dp[i]与前置子问题的关系（DP核心公式）<br>例：<code>dp[i] = dp[i-1] + dp[i-2]</code></p>
+<h3 id="步骤3：确定初始条件（dp数组初始化）"><a href="#步骤3：确定初始条件（dp数组初始化）" class="headerlink" title="步骤3：确定初始条件（dp数组初始化）"></a>步骤3：确定初始条件（dp数组初始化）</h3><p>定义最小子问题的解（基础边界值）<br>例：<code>dp[0] = 0，dp[1] = 1</code></p>
+<h3 id="步骤4：确定计算顺序"><a href="#步骤4：确定计算顺序" class="headerlink" title="步骤4：确定计算顺序"></a>步骤4：确定计算顺序</h3><p>两种主流方式：</p>
+<ul>
+<li>自底向上：从前往后填表（循环遍历，最常用）</li>
+<li>自顶向下：记忆化递归<br>例：从前到后使用for循环遍历</li>
+</ul>
+<h3 id="步骤5：提取最终答案"><a href="#步骤5：提取最终答案" class="headerlink" title="步骤5：提取最终答案"></a>步骤5：提取最终答案</h3><p>明确结果对应的dp数组下标<br>例：<code>return dp[n]</code></p>
+<hr>
+<h2 id="四、经典DP问题实战"><a href="#四、经典DP问题实战" class="headerlink" title="四、经典DP问题实战"></a>四、经典DP问题实战</h2><h3 id="4-1-斐波那契数列"><a href="#4-1-斐波那契数列" class="headerlink" title="4.1 斐波那契数列"></a>4.1 斐波那契数列</h3><h4 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h4><p>斐波那契数（F(n)）形成的序列称为斐波那契数列，由0和1开始，后续每一项等于前两项之和：</p>
+<ul>
+<li>F(0) &#x3D; 0，F(1) &#x3D; 1</li>
+<li>F(n) &#x3D; F(n-1) + F(n-2)（n&gt;1）<br>给定n，计算F(n)</li>
+</ul>
+<h4 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h4><p>输入：n &#x3D; 2<br>输出：1<br>解释：F(2) &#x3D; F(1) + F(0) &#x3D; 1 + 0 &#x3D; 1</p>
+<h4 id="解题代码"><a href="#解题代码" class="headerlink" title="解题代码"></a>解题代码</h4><pre><code class="language-java">class Solution {
+    public int fib(int n) {
+        // 初始化dp数组，存储子问题的解
+        int[] dp = new int[n + 2];
+        // 初始条件：最小子问题的解
+        dp[0] = 0;
+        dp[1] = 1;
+        // 自底向上遍历计算
+        for(int i = 2; i &lt;= n; i++){
+            dp[i] = dp[i-1] + dp[i-2];
+        }
+        // 返回最终结果
+        return dp[n];
+    }
+}
+</code></pre>
+<hr>
+<h3 id="4-2-01背包问题（最经典DP问题）"><a href="#4-2-01背包问题（最经典DP问题）" class="headerlink" title="4.2 01背包问题（最经典DP问题）"></a>4.2 01背包问题（最经典DP问题）</h3><h4 id="题目描述-1"><a href="#题目描述-1" class="headerlink" title="题目描述"></a>题目描述</h4><p>有N件物品和一个容量为V的背包，<strong>每件物品只能使用一次</strong>；<br>第i件物品的体积是vi，价值是wi；<br>求解将哪些物品装入背包，可使总体积不超过背包容量，且总价值最大，输出最大价值。</p>
+<h4 id="数据范围"><a href="#数据范围" class="headerlink" title="数据范围"></a>数据范围</h4><p>0 &lt; N,V ≤ 1000<br>0 &lt; vi,wi ≤ 1000</p>
+<h4 id="输入样例"><a href="#输入样例" class="headerlink" title="输入样例"></a>输入样例</h4><pre><code>4 5
+1 2
+2 4
+3 4
+4 5
+</code></pre>
+<h4 id="输出样例"><a href="#输出样例" class="headerlink" title="输出样例"></a>输出样例</h4><pre><code>8
+</code></pre>
+<h4 id="解题代码-1"><a href="#解题代码-1" class="headerlink" title="解题代码"></a>解题代码</h4><pre><code class="language-java">public class Bag01 {
+    public static void main(String[] args) {
+        // 物品数量
+        int n = 4;
+        // 背包容量
+        int V = 5;
+        // 物品体积数组
+        int[] weight = {1, 2, 3, 4};
+        // 物品价值数组
+        int[] value = {2, 4, 4, 5};
+
+        // dp二维数组定义：dp[i][j] = 前i个物品，背包容量为j时的最大价值
+        int[][] dp = new int[n + 1][V + 1];
+
+        // 遍历每个物品
+        for(int i = 1; i &lt;= n; i++){
+            // 遍历所有背包容量
+            for(int j = 1; j &lt;= V; j++){
+                // 当前背包容量装不下第i个物品 → 不选该物品
+                if(j &lt; weight[i-1]){ 
+                    dp[i][j] = dp[i-1][j];
+                }else{
+                    // 装得下 → 选/不选 取最大值
+                    dp[i][j] = Math.max(dp[i-1][j], dp[i-1][j - weight[i-1]] + value[i-1]);
+                }
+            }
+        }
+        // 输出最终最大价值
+        System.out.println(dp[n][V]); 
+    }
+}
+</code></pre>
+<hr>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li>DP核心：拆分问题+缓存子解+空间换时间</li>
+<li>三大条件：重叠子问题、最优子结构、无后效性</li>
+<li>解题万能模板：定状态→列方程→初始化→定顺序→取结果</li>
+<li>入门必练：斐波那契数列（一维DP）、01背包（二维DP）</li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://ZYH1207.github.io">Cole</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://zyh1207.github.io/2026/03/31/%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92/">https://zyh1207.github.io/2026/03/31/%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://ZYH1207.github.io" target="_blank">Bird的个人博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E7%AE%97%E6%B3%95/">算法</a></div><div class="post-share"><div class="social-share" data-image="/2026/03/31/%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92/fm.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://unpkg.com/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://unpkg.com/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/03/22/%E6%98%A5%E4%BA%8B%E9%9A%8F%E7%AC%94/" title="春事随笔"><img class="cover" src="/2026/03/22/%E6%98%A5%E4%BA%8B%E9%9A%8F%E7%AC%94/fm.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">春事随笔</div></div><div class="info-2"><div class="info-item-1">时间：2026年3月22日 12:00地点：河北大学   阔别多日的阳光终于倾洒而下，河大才算真正迎来了它的春天。路上的人们纷纷卸下臃肿的棉袄，换上轻薄的外套，连脚步都轻快了几分，一切都像整装待发的模样。 放学路上，春风轻轻地拂过疲惫的脸颊，像是在温柔地安抚，风颤颤的吹过耳边，似有细碎声响，却又无从捕捉。 忽然想起图书馆下面那停车的老地方——此刻正盛放的桃花，粉艳地映着一旁整齐的四季青，像揉碎的春光落在墨绿的绸子上。几只小鸟扑棱着翅膀跃上枝头，欢快的叫声好像仍然萦绕在耳畔。 冬去了，春来了，老地方变了样，换了装。许是旧事怅惘，许是前路迷茫，这般复杂的思绪，伴随着春风与花香慢慢绕上心头，遂有感而发，写下小诗，名为《春事》。 </div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/03/20/%E5%9B%9E%E6%BA%AF%E7%AE%97%E6%B3%95/" title="回溯算法"><img class="cover" src="/2026/03/20/%E5%9B%9E%E6%BA%AF%E7%AE%97%E6%B3%95/fm.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-20</div><div class="info-item-2">回溯算法</div></div><div class="info-2"><div class="info-item-1">回溯算法详解一、什么是回溯算法？回溯算法本质是暴力搜索的优化版，属于深度优先搜索（DFS）的一种。 核心思想 一步步尝试选择：从一个起点出发，按规则选择下一个元素 遇到死路就回头：如果当前路径走不通（不满足条件），就撤销上一步选择，回到上一个状态 遍历所有可能：直到找到所有符合条件的解，或者遍历完所有可能性   二、回溯算法的适用场景适用于需要枚举所有可能的组合&#x2F;排列&#x2F;路径的问题，典型场景：  全排列问题 组合求和问题 子集问题 棋盘问题（N皇后、解数独） 字符串分割问题   三、回溯算法通用模板（Java）所有回溯问题都可以套用这个固定框架： // 回溯通用模板 void backtrack(参数) {     // 1. 终止条件：找到一个解 / 走到尽头     if (满足结束条件) {         保存结果;         return;     }      // 2. 遍历所有可选的选择     for (选择 : 所有选择) {         做选择;           // 把当前选择加入路径         backtrack(参...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cole</div><div class="author-info-description">切尔西忠实拥趸💙<br>小区级业余门将⚽️<br>还没入门的码农💻<br>笔名：鸟子🐦</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">4</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ZYH1207"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ZYH1207" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:2385377554@qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92%EF%BC%88DP%EF%BC%89%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86-%E8%A7%A3%E9%A2%98%E6%A8%A1%E6%9D%BF-%E7%BB%8F%E5%85%B8%E4%BE%8B%E9%A2%98%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.</span> <span class="toc-text">动态规划（DP）核心原理+解题模板+经典例题详解</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92%E5%88%B0%E5%BA%95%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">1.1.</span> <span class="toc-text">一、动态规划到底是什么？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81DP%E9%80%82%E7%94%A8%E7%9A%84%E4%B8%89%E5%A4%A7%E5%BF%85%E8%A6%81%E6%9D%A1%E4%BB%B6%EF%BC%88%E5%88%A4%E6%96%AD%E6%A0%87%E5%87%86%EF%BC%89"><span class="toc-number">1.2.</span> <span class="toc-text">二、DP适用的三大必要条件（判断标准）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81DP%E6%A0%87%E5%87%86%E8%A7%A3%E9%A2%98%E4%BA%94%E6%AD%A5%E6%B3%95%EF%BC%88%E4%B8%87%E8%83%BD%E6%A8%A1%E6%9D%BF%EF%BC%89"><span class="toc-number">1.3.</span> <span class="toc-text">三、DP标准解题五步法（万能模板）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A41%EF%BC%9A%E7%A1%AE%E5%AE%9A%E7%8A%B6%E6%80%81"><span class="toc-number">1.3.1.</span> <span class="toc-text">步骤1：确定状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A42%EF%BC%9A%E7%A1%AE%E5%AE%9A%E7%8A%B6%E6%80%81%E8%BD%AC%E7%A7%BB%E6%96%B9%E7%A8%8B%EF%BC%88%E9%80%92%E6%8E%A8%E5%85%AC%E5%BC%8F%EF%BC%89"><span class="toc-number">1.3.2.</span> <span class="toc-text">步骤2：确定状态转移方程（递推公式）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A43%EF%BC%9A%E7%A1%AE%E5%AE%9A%E5%88%9D%E5%A7%8B%E6%9D%A1%E4%BB%B6%EF%BC%88dp%E6%95%B0%E7%BB%84%E5%88%9D%E5%A7%8B%E5%8C%96%EF%BC%89"><span class="toc-number">1.3.3.</span> <span class="toc-text">步骤3：确定初始条件（dp数组初始化）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A44%EF%BC%9A%E7%A1%AE%E5%AE%9A%E8%AE%A1%E7%AE%97%E9%A1%BA%E5%BA%8F"><span class="toc-number">1.3.4.</span> <span class="toc-text">步骤4：确定计算顺序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A45%EF%BC%9A%E6%8F%90%E5%8F%96%E6%9C%80%E7%BB%88%E7%AD%94%E6%A1%88"><span class="toc-number">1.3.5.</span> <span class="toc-text">步骤5：提取最终答案</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E7%BB%8F%E5%85%B8DP%E9%97%AE%E9%A2%98%E5%AE%9E%E6%88%98"><span class="toc-number">1.4.</span> <span class="toc-text">四、经典DP问题实战</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%96%90%E6%B3%A2%E9%82%A3%E5%A5%91%E6%95%B0%E5%88%97"><span class="toc-number">1.4.1.</span> <span class="toc-text">4.1 斐波那契数列</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%A2%98%E7%9B%AE%E6%8F%8F%E8%BF%B0"><span class="toc-number">1.4.1.1.</span> <span class="toc-text">题目描述</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.4.1.2.</span> <span class="toc-text">示例</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%A7%A3%E9%A2%98%E4%BB%A3%E7%A0%81"><span class="toc-number">1.4.1.3.</span> <span class="toc-text">解题代码</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-01%E8%83%8C%E5%8C%85%E9%97%AE%E9%A2%98%EF%BC%88%E6%9C%80%E7%BB%8F%E5%85%B8DP%E9%97%AE%E9%A2%98%EF%BC%89"><span class="toc-number">1.4.2.</span> <span class="toc-text">4.2 01背包问题（最经典DP问题）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%A2%98%E7%9B%AE%E6%8F%8F%E8%BF%B0-1"><span class="toc-number">1.4.2.1.</span> <span class="toc-text">题目描述</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E8%8C%83%E5%9B%B4"><span class="toc-number">1.4.2.2.</span> <span class="toc-text">数据范围</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BE%93%E5%85%A5%E6%A0%B7%E4%BE%8B"><span class="toc-number">1.4.2.3.</span> <span class="toc-text">输入样例</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BE%93%E5%87%BA%E6%A0%B7%E4%BE%8B"><span class="toc-number">1.4.2.4.</span> <span class="toc-text">输出样例</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%A7%A3%E9%A2%98%E4%BB%A3%E7%A0%81-1"><span class="toc-number">1.4.2.5.</span> <span class="toc-text">解题代码</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.5.</span> <span class="toc-text">总结</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/03/31/%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92/" title="动态规划">动态规划</a><time datetime="2026-03-31T03:10:24.000Z" title="发表于 2026-03-31 11:10:24">2026-03-31</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/03/22/%E6%98%A5%E4%BA%8B%E9%9A%8F%E7%AC%94/" title="春事随笔">春事随笔</a><time datetime="2026-03-22T04:00:00.000Z" title="发表于 2026-03-22 12:00:00">2026-03-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/03/20/%E5%9B%9E%E6%BA%AF%E7%AE%97%E6%B3%95/" title="回溯算法">回溯算法</a><time datetime="2026-03-20T15:35:20.000Z" title="发表于 2026-03-20 23:35:20">2026-03-20</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/03/18/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87Hexo%E5%8D%9A%E5%AE%A2/" title="我的第一篇Hexo博客">我的第一篇Hexo博客</a><time datetime="2026-03-18T00:54:13.000Z" title="发表于 2026-03-18 08:54:13">2026-03-18</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"></div><div class="footer_custom_text"><div id="footer-custom-content" style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+  <div id="copyright_info" style="color: #ffffff; font-size: 0.95rem;"></div>
+
+  <div id="runtime_info" style="color: #ffffff; font-size: 0.85rem;">
+    <span id="runtime_span">加载中...</span>
+  </div>
+
+  <div id="footer_badges" style="margin-top: 5px;">
+    <a style="margin-inline:5px" target="_blank" href="https://github.com/ZYH1207"><img src="https://img.shields.io/badge/Github-ZYH1207-24292e?logo=github" title="我的Github"></a>
+    <a style="margin-inline:5px" target="_blank" href="mailto:2385377554@qq.com"><img src="https://img.shields.io/badge/Email-联系我-49B1F5?logo=gmail" title="发送邮件"></a>
+    <a style="margin-inline:5px" target="_blank" href="https://hexo.io/"><img src="https://img.shields.io/badge/Hexo-博客-0E88EB?logo=hexo" title="Hexo框架"></a>
+    <a style="margin-inline:5px" target="_blank" href="https://butterfly.js.org/"><img src="https://img.shields.io/badge/Theme-Butterfly-FF7242?logo=blogger" title="Butterfly主题"></a>
+  </div>
+</div>
+</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script src="/js/footer.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
