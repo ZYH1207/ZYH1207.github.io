@@ -1,0 +1,323 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Synchronized 与 ReentrantLock | Bird的个人博客</title><meta name="author" content="Cole"><meta name="copyright" content="Cole"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Synchronized 与 ReentrantLock">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Synchronized 与 ReentrantLock">
+<meta property="og:url" content="https://zyh1207.github.io/2026/04/10/Synchronized-%E4%B8%8E-ReentrantLock/index.html">
+<meta property="og:site_name" content="Bird的个人博客">
+<meta property="og:description" content="Synchronized 与 ReentrantLock">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zyh1207.github.io/2026/04/10/Synchronized-%E4%B8%8E-ReentrantLock/fm.png">
+<meta property="article:published_time" content="2026-04-10T08:13:16.000Z">
+<meta property="article:modified_time" content="2026-04-10T08:17:09.746Z">
+<meta property="article:author" content="Cole">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="并发">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://zyh1207.github.io/2026/04/10/Synchronized-%E4%B8%8E-ReentrantLock/fm.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Synchronized 与 ReentrantLock",
+  "url": "https://zyh1207.github.io/2026/04/10/Synchronized-%E4%B8%8E-ReentrantLock/",
+  "image": "https://zyh1207.github.io/2026/04/10/Synchronized-%E4%B8%8E-ReentrantLock/fm.png",
+  "datePublished": "2026-04-10T08:13:16.000Z",
+  "dateModified": "2026-04-10T08:17:09.746Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cole",
+      "url": "https://ZYH1207.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://zyh1207.github.io/2026/04/10/Synchronized-%E4%B8%8E-ReentrantLock/index.html"><link rel="preconnect" href="//unpkg.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":null,"highlightCopy":true,"highlightLang":true,"highlightHeightLimit":800,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://unpkg.com/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Synchronized 与 ReentrantLock',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="Bird的个人博客" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background-color: #fbfdff;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">6</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/2026/04/10/Synchronized-%E4%B8%8E-ReentrantLock/fm.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Bird的个人博客</span></a><a class="nav-page-title" href="/"><span class="site-name">Synchronized 与 ReentrantLock</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Synchronized 与 ReentrantLock</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-04-10T08:13:16.000Z" title="发表于 2026-04-10 16:13:16">2026-04-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-04-10T08:17:09.746Z" title="更新于 2026-04-10 16:17:09">2026-04-10</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%BC%80%E5%8F%91/">开发</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Java-并发：synchronized-与-ReentrantLock-全面解析"><a href="#Java-并发：synchronized-与-ReentrantLock-全面解析" class="headerlink" title="Java 并发：synchronized 与 ReentrantLock 全面解析"></a>Java 并发：synchronized 与 ReentrantLock 全面解析</h1><h2 id="一、前言"><a href="#一、前言" class="headerlink" title="一、前言"></a>一、前言</h2><p>在 Java 多线程编程中，<strong>线程安全</strong>是核心问题。<code>synchronized</code> 与 <code>ReentrantLock</code> 是最常用的两种同步方案，都能实现<strong>可重入独占锁</strong>，保证临界区代码的原子性、可见性与有序性。</p>
+<p>本文从<strong>底层原理、使用方式、核心特性、对比选型</strong>四个维度，帮你彻底搞懂二者的区别与适用场景。</p>
+<h2 id="二、synchronized-详解"><a href="#二、synchronized-详解" class="headerlink" title="二、synchronized 详解"></a>二、synchronized 详解</h2><h3 id="2-1-基本介绍"><a href="#2-1-基本介绍" class="headerlink" title="2.1 基本介绍"></a>2.1 基本介绍</h3><p><code>synchronized</code> 是 JVM 内置的<strong>隐式锁</strong>，由 JVM 自动管理加锁与释放，无需手动编码，使用简单、安全。</p>
+<h3 id="2-2-底层原理"><a href="#2-2-底层原理" class="headerlink" title="2.2 底层原理"></a>2.2 底层原理</h3><ul>
+<li>字节码：通过 <code>monitorenter</code>&#x2F;<code>monitorexit</code> 指令实现</li>
+<li>运行时：依赖对象头 Mark Word 与 Monitor（监视器锁）</li>
+<li>JDK 1.6+ 优化：偏向锁 → 轻量级锁 → 重量级锁 自动升级</li>
+</ul>
+<h3 id="2-3-三种使用方式"><a href="#2-3-三种使用方式" class="headerlink" title="2.3 三种使用方式"></a>2.3 三种使用方式</h3><pre><code class="language-java">// 1. 修饰实例方法（锁当前对象 this）
+public synchronized void method() {
+    // 临界区
+}
+
+// 2. 修饰静态方法（锁当前类 Class 对象）
+public static synchronized void staticMethod() {
+    // 临界区
+}
+
+// 3. 同步代码块（自定义锁对象，粒度更细）
+public void blockMethod() {
+    synchronized (this) {
+        // 临界区
+    }
+}
+</code></pre>
+<h3 id="2-4-核心特点"><a href="#2-4-核心特点" class="headerlink" title="2.4 核心特点"></a>2.4 核心特点</h3><ul>
+<li>自动加锁、自动释放（正常结束&#x2F;异常都会释放）</li>
+<li>仅支持<strong>非公平锁</strong>，无法配置</li>
+<li>不支持响应中断、不支持超时获取</li>
+<li>语法简洁，不易出错，适合简单同步场景</li>
+</ul>
+<h2 id="三、ReentrantLock-详解"><a href="#三、ReentrantLock-详解" class="headerlink" title="三、ReentrantLock 详解"></a>三、ReentrantLock 详解</h2><h3 id="3-1-基本介绍"><a href="#3-1-基本介绍" class="headerlink" title="3.1 基本介绍"></a>3.1 基本介绍</h3><p><code>ReentrantLock</code> 是 JUC 包提供的<strong>显式锁</strong>，基于 <strong>AQS(AbstractQueuedSynchronizer)</strong> 实现，功能更强大、可控性更高。</p>
+<h3 id="3-2-标准使用模板"><a href="#3-2-标准使用模板" class="headerlink" title="3.2 标准使用模板"></a>3.2 标准使用模板</h3><p><strong>必须配合 try-finally 确保锁释放</strong>，避免死锁</p>
+<pre><code class="language-java">import java.util.concurrent.locks.ReentrantLock;
+
+public class ReentrantLockDemo {
+    private final ReentrantLock lock = new ReentrantLock();
+
+    public void work() {
+        // 加锁
+        lock.lock();
+        try {
+            // 临界区业务逻辑
+        } finally {
+            // 必须在 finally 释放锁
+            lock.unlock();
+        }
+    }
+}
+</code></pre>
+<h3 id="3-3-高级特性（核心优势）"><a href="#3-3-高级特性（核心优势）" class="headerlink" title="3.3 高级特性（核心优势）"></a>3.3 高级特性（核心优势）</h3><ol>
+<li><strong>支持公平&#x2F;非公平锁</strong></li>
+</ol>
+<pre><code class="language-java">ReentrantLock fairLock = new ReentrantLock(true);   // 公平锁（FIFO）
+ReentrantLock unfairLock = new ReentrantLock();    // 非公平锁（默认）
+</code></pre>
+<ol start="2">
+<li><strong>支持响应中断</strong></li>
+</ol>
+<pre><code class="language-java">lock.lockInterruptibly(); // 等待锁时可被中断，避免永久阻塞
+</code></pre>
+<ol start="3">
+<li><strong>支持超时获取锁</strong></li>
+</ol>
+<pre><code class="language-java">boolean tryLock = lock.tryLock(1, TimeUnit.SECONDS);
+</code></pre>
+<ol start="4">
+<li><strong>可绑定多个 Condition</strong> 实现精准唤醒</li>
+</ol>
+<h2 id="四、核心对比（面试高频）"><a href="#四、核心对比（面试高频）" class="headerlink" title="四、核心对比（面试高频）"></a>四、核心对比（面试高频）</h2><table>
+<thead>
+<tr>
+<th align="left">对比项</th>
+<th align="left">synchronized</th>
+<th align="left">ReentrantLock</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>实现层面</strong></td>
+<td align="left">JVM 原生实现</td>
+<td align="left">Java 代码基于 AQS 实现</td>
+</tr>
+<tr>
+<td align="left"><strong>锁管理</strong></td>
+<td align="left">隐式，自动加释放</td>
+<td align="left">显式，手动 lock&#x2F;unlock</td>
+</tr>
+<tr>
+<td align="left"><strong>公平性</strong></td>
+<td align="left">仅非公平</td>
+<td align="left">支持公平&#x2F;非公平切换</td>
+</tr>
+<tr>
+<td align="left"><strong>中断支持</strong></td>
+<td align="left">不支持</td>
+<td align="left">支持 lockInterruptibly</td>
+</tr>
+<tr>
+<td align="left"><strong>超时获取</strong></td>
+<td align="left">不支持</td>
+<td align="left">支持 tryLock(timeout)</td>
+</tr>
+<tr>
+<td align="left"><strong>Condition</strong></td>
+<td align="left">不支持，只能 wait&#x2F;notify</td>
+<td align="left">支持多 Condition 精准唤醒</td>
+</tr>
+<tr>
+<td align="left"><strong>使用成本</strong></td>
+<td align="left">极简，不易出错</td>
+<td align="left">需手动释放，易遗漏</td>
+</tr>
+<tr>
+<td align="left"><strong>性能</strong></td>
+<td align="left">JDK 1.8+ 优化后接近</td>
+<td align="left">高并发下更可控</td>
+</tr>
+</tbody></table>
+<h2 id="五、如何选型（实用建议）"><a href="#五、如何选型（实用建议）" class="headerlink" title="五、如何选型（实用建议）"></a>五、如何选型（实用建议）</h2><ol>
+<li><strong>优先使用 synchronized</strong></li>
+</ol>
+<ul>
+<li>简单同步场景、代码量少</li>
+<li>无需复杂特性，追求安全与简洁</li>
+<li>JVM 会持续优化，维护成本更低</li>
+</ul>
+<ol start="2">
+<li><strong>选择 ReentrantLock</strong></li>
+</ol>
+<ul>
+<li>需要<strong>公平锁</strong>避免线程饥饿</li>
+<li>需要<strong>中断、超时</strong>防止死锁</li>
+<li>需要<strong>多 Condition</strong> 实现精细化线程调度</li>
+</ul>
+<h2 id="六、常见避坑"><a href="#六、常见避坑" class="headerlink" title="六、常见避坑"></a>六、常见避坑</h2><ol>
+<li><strong>ReentrantLock 必须在 finally 里 unlock</strong>，否则极易造成锁泄漏</li>
+<li>锁对象尽量用 <code>private final</code> 修饰，避免被外部修改</li>
+<li>不要在循环中频繁加锁释放，影响性能</li>
+<li>锁粒度尽可能小，只包裹临界区</li>
+</ol>
+<h2 id="七、总结"><a href="#七、总结" class="headerlink" title="七、总结"></a>七、总结</h2><ul>
+<li><code>synchronized</code>：<strong>简单、安全、省心</strong>，适合绝大多数常规场景</li>
+<li><code>ReentrantLock</code>：<strong>灵活、强大、可控</strong>，适合复杂并发调度</li>
+</ul>
+<p>日常开发优先 <code>synchronized</code>；遇到高级并发需求，再用 <code>ReentrantLock</code> 针对性解决。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://ZYH1207.github.io">Cole</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://zyh1207.github.io/2026/04/10/Synchronized-%E4%B8%8E-ReentrantLock/">https://zyh1207.github.io/2026/04/10/Synchronized-%E4%B8%8E-ReentrantLock/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://ZYH1207.github.io" target="_blank">Bird的个人博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Java/">Java</a><a class="post-meta__tags" href="/tags/%E5%B9%B6%E5%8F%91/">并发</a></div><div class="post-share"><div class="social-share" data-image="/2026/04/10/Synchronized-%E4%B8%8E-ReentrantLock/fm.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://unpkg.com/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://unpkg.com/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/03/31/Harness-Engineering%E5%AE%9E%E8%B7%B5/" title="Harness Engineering实践"><img class="cover" src="/2026/03/31/Harness-Engineering%E5%AE%9E%E8%B7%B5/fm.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Harness Engineering实践</div></div><div class="info-2"><div class="info-item-1">Harness Engineering 实践：通过 Cursor 高效开发 SpringBoot 项目全流程Harness Engineering（驾驭工程）是OpenAI在2026年提出的AI Agent优先的软件工程范式，核心定义为：将上下文、约束、验证、反馈回路和清理机制，编码成Agent可读、可执行、可持续演化的标准化工程规范（One Spec），解决规模化AI生成代码的可维护性、一致性和架构漂移问题。其核心公式为：可靠的AI研发 &#x3D; 大模型 + 标准化Harness体系，模型是通用商品，Harness Spec是团队的核心壁垒。 下面我为大家展示一下我使用cursor开发一个轻量级后台管理API项目的流程  一、创建核心目录结构（全系统通用）先在项目根目录，手动创建 2 个顶层文件夹，作为所有 Agent 的共享规范中心： 你的项目根目录/ ├─ .agents/        # 核心：全局规则、技能模板存放地（所有Agent共用） │   ├─ rules/      # 红线规则目录 │   └─ skills/     # 技能模板目录 └─ .cur...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cole</div><div class="author-info-description">切尔西忠实拥趸💙<br>小区级业余门将⚽️<br>还没入门的码农💻<br>笔名：鸟子🐦</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">6</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ZYH1207"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ZYH1207" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:2385377554@qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Java-%E5%B9%B6%E5%8F%91%EF%BC%9Asynchronized-%E4%B8%8E-ReentrantLock-%E5%85%A8%E9%9D%A2%E8%A7%A3%E6%9E%90"><span class="toc-number">1.</span> <span class="toc-text">Java 并发：synchronized 与 ReentrantLock 全面解析</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%89%8D%E8%A8%80"><span class="toc-number">1.1.</span> <span class="toc-text">一、前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81synchronized-%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.2.</span> <span class="toc-text">二、synchronized 详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%9F%BA%E6%9C%AC%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.2.1.</span> <span class="toc-text">2.1 基本介绍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86"><span class="toc-number">1.2.2.</span> <span class="toc-text">2.2 底层原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E4%B8%89%E7%A7%8D%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F"><span class="toc-number">1.2.3.</span> <span class="toc-text">2.3 三种使用方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%A0%B8%E5%BF%83%E7%89%B9%E7%82%B9"><span class="toc-number">1.2.4.</span> <span class="toc-text">2.4 核心特点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81ReentrantLock-%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.3.</span> <span class="toc-text">三、ReentrantLock 详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%9F%BA%E6%9C%AC%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.3.1.</span> <span class="toc-text">3.1 基本介绍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E6%A0%87%E5%87%86%E4%BD%BF%E7%94%A8%E6%A8%A1%E6%9D%BF"><span class="toc-number">1.3.2.</span> <span class="toc-text">3.2 标准使用模板</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7%EF%BC%88%E6%A0%B8%E5%BF%83%E4%BC%98%E5%8A%BF%EF%BC%89"><span class="toc-number">1.3.3.</span> <span class="toc-text">3.3 高级特性（核心优势）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%A0%B8%E5%BF%83%E5%AF%B9%E6%AF%94%EF%BC%88%E9%9D%A2%E8%AF%95%E9%AB%98%E9%A2%91%EF%BC%89"><span class="toc-number">1.4.</span> <span class="toc-text">四、核心对比（面试高频）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%A6%82%E4%BD%95%E9%80%89%E5%9E%8B%EF%BC%88%E5%AE%9E%E7%94%A8%E5%BB%BA%E8%AE%AE%EF%BC%89"><span class="toc-number">1.5.</span> <span class="toc-text">五、如何选型（实用建议）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%B8%B8%E8%A7%81%E9%81%BF%E5%9D%91"><span class="toc-number">1.6.</span> <span class="toc-text">六、常见避坑</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">1.7.</span> <span class="toc-text">七、总结</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/10/Synchronized-%E4%B8%8E-ReentrantLock/" title="Synchronized 与 ReentrantLock">Synchronized 与 ReentrantLock</a><time datetime="2026-04-10T08:13:16.000Z" title="发表于 2026-04-10 16:13:16">2026-04-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/03/31/Harness-Engineering%E5%AE%9E%E8%B7%B5/" title="Harness Engineering实践">Harness Engineering实践</a><time datetime="2026-03-31T15:22:37.000Z" title="发表于 2026-03-31 23:22:37">2026-03-31</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/03/31/%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92/" title="动态规划">动态规划</a><time datetime="2026-03-31T03:10:24.000Z" title="发表于 2026-03-31 11:10:24">2026-03-31</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/03/22/%E6%98%A5%E4%BA%8B%E9%9A%8F%E7%AC%94/" title="春事随笔">春事随笔</a><time datetime="2026-03-22T04:00:00.000Z" title="发表于 2026-03-22 12:00:00">2026-03-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/03/20/%E5%9B%9E%E6%BA%AF%E7%AE%97%E6%B3%95/" title="回溯算法">回溯算法</a><time datetime="2026-03-20T15:35:20.000Z" title="发表于 2026-03-20 23:35:20">2026-03-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"></div><div class="footer_custom_text"><div id="footer-custom-content" style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+  <div id="copyright_info" style="color: #ffffff; font-size: 0.95rem;"></div>
+
+  <div id="runtime_info" style="color: #ffffff; font-size: 0.85rem;">
+    <span id="runtime_span">加载中...</span>
+  </div>
+
+  <div id="footer_badges" style="margin-top: 5px;">
+    <a style="margin-inline:5px" target="_blank" href="https://github.com/ZYH1207"><img src="https://img.shields.io/badge/Github-ZYH1207-24292e?logo=github" title="我的Github"></a>
+    <a style="margin-inline:5px" target="_blank" href="mailto:2385377554@qq.com"><img src="https://img.shields.io/badge/Email-联系我-49B1F5?logo=gmail" title="发送邮件"></a>
+    <a style="margin-inline:5px" target="_blank" href="https://hexo.io/"><img src="https://img.shields.io/badge/Hexo-博客-0E88EB?logo=hexo" title="Hexo框架"></a>
+    <a style="margin-inline:5px" target="_blank" href="https://butterfly.js.org/"><img src="https://img.shields.io/badge/Theme-Butterfly-FF7242?logo=blogger" title="Butterfly主题"></a>
+  </div>
+</div>
+</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script src="/js/footer.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

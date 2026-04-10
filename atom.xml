@@ -10,7 +10,21 @@
   <rights>All rights reserved 2026, Cole</rights>
   <subtitle>记录生活与成长</subtitle>
   <title>Bird的个人博客</title>
-  <updated>2026-03-31T15:33:05.111Z</updated>
+  <updated>2026-04-10T08:17:09.746Z</updated>
+  <entry>
+    <author>
+      <name>Cole</name>
+    </author>
+    <category term="开发" scheme="https://zyh1207.github.io/categories/%E5%BC%80%E5%8F%91/"/>
+    <category term="Java" scheme="https://zyh1207.github.io/tags/Java/"/>
+    <category term="并发" scheme="https://zyh1207.github.io/tags/%E5%B9%B6%E5%8F%91/"/>
+    <id>https://zyh1207.github.io/2026/04/10/Synchronized-%E4%B8%8E-ReentrantLock/</id>
+    <link href="https://zyh1207.github.io/2026/04/10/Synchronized-%E4%B8%8E-ReentrantLock/"/>
+    <published>2026-04-10T08:13:16.000Z</published>
+    <summary>Synchronized 与 ReentrantLock</summary>
+    <title>Synchronized 与 ReentrantLock</title>
+    <updated>2026-04-10T08:17:09.746Z</updated>
+  </entry>
   <entry>
     <author>
       <name>Cole</name>
