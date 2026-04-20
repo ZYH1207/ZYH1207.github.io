@@ -10,7 +10,21 @@
   <rights>All rights reserved 2026, Cole</rights>
   <subtitle>记录生活与成长</subtitle>
   <title>Bird的个人博客</title>
-  <updated>2026-04-10T08:17:09.746Z</updated>
+  <updated>2026-04-20T12:09:53.342Z</updated>
+  <entry>
+    <author>
+      <name>Cole</name>
+    </author>
+    <category term="开发" scheme="https://zyh1207.github.io/categories/%E5%BC%80%E5%8F%91/"/>
+    <category term="Java" scheme="https://zyh1207.github.io/tags/Java/"/>
+    <category term="并发" scheme="https://zyh1207.github.io/tags/%E5%B9%B6%E5%8F%91/"/>
+    <id>https://zyh1207.github.io/2026/04/20/%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF/</id>
+    <link href="https://zyh1207.github.io/2026/04/20/%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF/"/>
+    <published>2026-04-20T12:03:59.000Z</published>
+    <summary>拒绝策略的实现思路</summary>
+    <title>拒绝策略的实现思路</title>
+    <updated>2026-04-20T12:09:53.342Z</updated>
+  </entry>
   <entry>
     <author>
       <name>Cole</name>

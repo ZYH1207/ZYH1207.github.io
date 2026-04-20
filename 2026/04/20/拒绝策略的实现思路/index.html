@@ -1,0 +1,299 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>拒绝策略的实现思路 | Bird的个人博客</title><meta name="author" content="Cole"><meta name="copyright" content="Cole"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="拒绝策略的实现思路">
+<meta property="og:type" content="article">
+<meta property="og:title" content="拒绝策略的实现思路">
+<meta property="og:url" content="https://zyh1207.github.io/2026/04/20/%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF/index.html">
+<meta property="og:site_name" content="Bird的个人博客">
+<meta property="og:description" content="拒绝策略的实现思路">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zyh1207.github.io/2026/04/20/%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF/fm.png">
+<meta property="article:published_time" content="2026-04-20T12:03:59.000Z">
+<meta property="article:modified_time" content="2026-04-20T12:09:53.342Z">
+<meta property="article:author" content="Cole">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="并发">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://zyh1207.github.io/2026/04/20/%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF/fm.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "拒绝策略的实现思路",
+  "url": "https://zyh1207.github.io/2026/04/20/%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF/",
+  "image": "https://zyh1207.github.io/2026/04/20/%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF/fm.png",
+  "datePublished": "2026-04-20T12:03:59.000Z",
+  "dateModified": "2026-04-20T12:09:53.342Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cole",
+      "url": "https://ZYH1207.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://zyh1207.github.io/2026/04/20/%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF/index.html"><link rel="preconnect" href="//unpkg.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":null,"highlightCopy":true,"highlightLang":true,"highlightHeightLimit":800,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://unpkg.com/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '拒绝策略的实现思路',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="Bird的个人博客" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background-color: #fbfdff;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">7</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">6</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/2026/04/20/%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF/fm.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Bird的个人博客</span></a><a class="nav-page-title" href="/"><span class="site-name">拒绝策略的实现思路</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">拒绝策略的实现思路</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-04-20T12:03:59.000Z" title="发表于 2026-04-20 20:03:59">2026-04-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-04-20T12:09:53.342Z" title="更新于 2026-04-20 20:09:53">2026-04-20</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%BC%80%E5%8F%91/">开发</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="自定义线程池：拒绝策略的实现思路"><a href="#自定义线程池：拒绝策略的实现思路" class="headerlink" title="自定义线程池：拒绝策略的实现思路"></a>自定义线程池：拒绝策略的实现思路</h1><p>在手写线程池的过程中，<strong>拒绝策略</strong>是保障线程池稳定运行的关键兜底机制。它解决了任务过载时的处理问题，本文从设计初衷、核心思想到代码实现，完整梳理拒绝策略的设计与落地思路。</p>
+<hr>
+<h2 id="一、设计初衷：为什么需要拒绝策略？"><a href="#一、设计初衷：为什么需要拒绝策略？" class="headerlink" title="一、设计初衷：为什么需要拒绝策略？"></a>一、设计初衷：为什么需要拒绝策略？</h2><p>线程池在运行时存在两个硬性限制：</p>
+<ul>
+<li>核心线程数量固定，不能无限制创建新线程</li>
+<li>阻塞队列容量有限，不能无限缓存待执行任务</li>
+</ul>
+<p>当新任务提交时，若出现 <strong>核心线程已满 + 阻塞队列已满</strong> 的情况，任务既无法立即执行，也无法暂存队列。<br>为了避免程序阻塞、任务丢失或系统资源耗尽，必须提供一套灵活的<strong>兜底处理方案</strong>，这便是拒绝策略的设计意义。</p>
+<h2 id="二、核心设计思想"><a href="#二、核心设计思想" class="headerlink" title="二、核心设计思想"></a>二、核心设计思想</h2><p>拒绝策略采用 <strong>策略模式</strong> 进行设计，遵循两个核心原则：</p>
+<ol>
+<li><strong>职责分离，解耦实现</strong><ul>
+<li>线程池：只负责判断任务是否达到拒绝条件</li>
+<li>阻塞队列：只负责判断自身容量是否已满</li>
+<li>拒绝逻辑：由外部自定义，不硬编码在线程池内部</li>
+</ul>
+</li>
+<li><strong>灵活可扩展</strong><br>切换或新增拒绝策略时，无需修改线程池与队列源码，只需替换外部实现逻辑即可。</li>
+</ol>
+<p>这套设计思路，与 JDK 原生 <code>ThreadPoolExecutor</code> 的拒绝策略设计完全一致，理解后可以无缝对接原生线程池学习。</p>
+<hr>
+<h2 id="三、分步实现思路"><a href="#三、分步实现思路" class="headerlink" title="三、分步实现思路"></a>三、分步实现思路</h2><h3 id="1-定义函数式接口：统一拒绝策略规范"><a href="#1-定义函数式接口：统一拒绝策略规范" class="headerlink" title="1. 定义函数式接口：统一拒绝策略规范"></a>1. 定义函数式接口：统一拒绝策略规范</h3><p>先通过接口约定拒绝行为，保证所有拒绝策略都有统一的调用方式。<br>同时使用函数式接口，支持直接使用 Lambda 表达式实现策略。</p>
+<pre><code class="language-java">@FunctionalInterface
+interface RejectPolicy&lt;T&gt; {
+    /**
+     * 拒绝策略核心方法
+     * @param queue 阻塞队列，可用于再次尝试入队
+     * @param task  被拒绝的任务
+     */
+    void reject(BlockingQueue&lt;T&gt; queue, T task);
+}
+</code></pre>
+<h3 id="2-线程池持有拒绝策略"><a href="#2-线程池持有拒绝策略" class="headerlink" title="2. 线程池持有拒绝策略"></a>2. 线程池持有拒绝策略</h3><p>拒绝策略属于线程池配置，由外部传入，线程池只负责保存与传递，不关心具体实现。</p>
+<pre><code class="language-java">class ThreadPool {
+    // 拒绝策略对象
+    private RejectPolicy&lt;Runnable&gt; rejectPolicy;
+
+    public ThreadPool(int coreSize, long timeout, TimeUnit timeUnit, 
+                      int queueCapacity, RejectPolicy&lt;Runnable&gt; rejectPolicy) {
+        this.coreSize = coreSize;
+        this.timeout = timeout;
+        this.timeUnit = timeUnit;
+        this.taskQueue = new BlockingQueue&lt;&gt;(queueCapacity);
+        // 注入外部自定义拒绝策略
+        this.rejectPolicy = rejectPolicy;
+    }
+}
+</code></pre>
+<h3 id="3-任务提交：判断是否触发拒绝流程"><a href="#3-任务提交：判断是否触发拒绝流程" class="headerlink" title="3. 任务提交：判断是否触发拒绝流程"></a>3. 任务提交：判断是否触发拒绝流程</h3><p>在线程池执行任务的入口方法中，对任务进行分流：</p>
+<ul>
+<li>工作线程数未达到核心线程数：直接新建线程执行任务</li>
+<li>工作线程数已满：尝试将任务加入阻塞队列</li>
+<li>队列也满：由队列触发拒绝策略</li>
+</ul>
+<pre><code class="language-java">public void execute(Runnable task) {
+    synchronized (workers) {
+        // 线程未满：直接创建工作线程
+        if (workers.size() &lt; coreSize) {
+            Worker worker = new Worker(task);
+            workers.add(worker);
+            worker.start();
+        } 
+        // 线程已满：尝试入队，队列满则执行拒绝策略
+        else {
+            taskQueue.tryPut(rejectPolicy, task);
+        }
+    }
+}
+</code></pre>
+<h3 id="4-阻塞队列：最终判断并执行拒绝"><a href="#4-阻塞队列：最终判断并执行拒绝" class="headerlink" title="4. 阻塞队列：最终判断并执行拒绝"></a>4. 阻塞队列：最终判断并执行拒绝</h3><p>队列自身最清楚容量状态，在 <code>tryPut</code> 方法中完成最终判断：<br>队列未满 → 正常添加任务；<br>队列已满 → 执行外部传入的拒绝策略。</p>
+<pre><code class="language-java">public void tryPut(RejectPolicy&lt;T&gt; rejectPolicy, T task) {
+    lock.lock();
+    try {
+        if (queue.size() == capacity) {
+            // 队列已满，执行拒绝策略
+            rejectPolicy.reject(this, task);
+        } else {
+            // 正常入队，并唤醒等待的工作线程
+            queue.addLast(task);
+            emptyWaitSet.signal();
+        }
+    } finally {
+        lock.unlock();
+    }
+}
+</code></pre>
+<h3 id="5-外部自定义拒绝策略"><a href="#5-外部自定义拒绝策略" class="headerlink" title="5. 外部自定义拒绝策略"></a>5. 外部自定义拒绝策略</h3><p>使用线程池时，通过 Lambda 灵活定义拒绝行为，常见策略包括：</p>
+<ul>
+<li>无限阻塞等待入队</li>
+<li>带超时时间等待入队</li>
+<li>直接丢弃任务</li>
+<li>抛出异常通知上层</li>
+<li>由提交任务的线程自己执行</li>
+</ul>
+<pre><code class="language-java">ThreadPool threadPool = new ThreadPool(1, 1000, TimeUnit.MILLISECONDS, 1,
+    (queue, task) -&gt; {
+        // 自定义拒绝逻辑：调用者线程自行执行
+        task.run();
+    });
+</code></pre>
+<hr>
+<h2 id="四、通用任务执行分流逻辑"><a href="#四、通用任务执行分流逻辑" class="headerlink" title="四、通用任务执行分流逻辑"></a>四、通用任务执行分流逻辑</h2><p>抛开具体代码参数，拒绝策略的通用执行流程可以总结为：</p>
+<ol>
+<li>新任务提交到线程池</li>
+<li>判断当前工作线程数是否小于核心线程数<ul>
+<li>是：创建新线程执行任务</li>
+<li>否：尝试将任务加入阻塞队列</li>
+</ul>
+</li>
+<li>队列加入成功：等待工作线程消费</li>
+<li>队列加入失败（队列已满）：<strong>触发拒绝策略</strong></li>
+<li>执行自定义兜底逻辑（丢弃、抛异常、调用者执行等）</li>
+</ol>
+<hr>
+<h2 id="五、设计优势"><a href="#五、设计优势" class="headerlink" title="五、设计优势"></a>五、设计优势</h2><ol>
+<li><strong>解耦彻底</strong><br>线程池、阻塞队列、拒绝逻辑三者相互独立，互不侵入，便于维护和扩展。</li>
+<li><strong>扩展性强</strong><br>新增拒绝策略只需新增实现，无需改动线程池核心代码。</li>
+<li><strong>灵活性高</strong><br>支持多种拒绝行为，可根据业务场景自由选择。</li>
+<li><strong>贴近工业级实现</strong><br>设计思想对齐 JDK 原生线程池，学习成本低、实用性强。</li>
+</ol>
+<hr>
+<h2 id="六、总结"><a href="#六、总结" class="headerlink" title="六、总结"></a>六、总结</h2><p>拒绝策略的本质，是<strong>线程池面对任务过载时的兜底保护机制</strong>。<br>通过策略模式将“是否拒绝”与“如何拒绝”分离，既保证了线程池的稳定性，又保留了极高的灵活性。<br>理解这一设计思路，不仅能看懂手写线程池，也能更深入掌握 Java 原生线程池的工作原理。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://ZYH1207.github.io">Cole</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://zyh1207.github.io/2026/04/20/%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF/">https://zyh1207.github.io/2026/04/20/%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://ZYH1207.github.io" target="_blank">Bird的个人博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Java/">Java</a><a class="post-meta__tags" href="/tags/%E5%B9%B6%E5%8F%91/">并发</a></div><div class="post-share"><div class="social-share" data-image="/2026/04/20/%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF/fm.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://unpkg.com/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://unpkg.com/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/04/10/Synchronized-%E4%B8%8E-ReentrantLock/" title="Synchronized 与 ReentrantLock"><img class="cover" src="/2026/04/10/Synchronized-%E4%B8%8E-ReentrantLock/fm.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Synchronized 与 ReentrantLock</div></div><div class="info-2"><div class="info-item-1">Java 并发：synchronized 与 ReentrantLock 全面解析一、前言在 Java 多线程编程中，线程安全是核心问题。synchronized 与 ReentrantLock 是最常用的两种同步方案，都能实现可重入独占锁，保证临界区代码的原子性、可见性与有序性。 本文从底层原理、使用方式、核心特性、对比选型四个维度，帮你彻底搞懂二者的区别与适用场景。 二、synchronized 详解2.1 基本介绍synchronized 是 JVM 内置的隐式锁，由 JVM 自动管理加锁与释放，无需手动编码，使用简单、安全。 2.2 底层原理 字节码：通过 monitorenter&#x2F;monitorexit 指令实现 运行时：依赖对象头 Mark Word 与 Monitor（监视器锁） JDK 1.6+ 优化：偏向锁 → 轻量级锁 → 重量级锁 自动升级  2.3 三种使用方式// 1. 修饰实例方法（锁当前对象 this） public synchronized void method() {     // 临界区 }  // 2. 修饰静态方法（锁当前类 C...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/04/10/Synchronized-%E4%B8%8E-ReentrantLock/" title="Synchronized 与 ReentrantLock"><img class="cover" src="/2026/04/10/Synchronized-%E4%B8%8E-ReentrantLock/fm.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-10</div><div class="info-item-2">Synchronized 与 ReentrantLock</div></div><div class="info-2"><div class="info-item-1">Java 并发：synchronized 与 ReentrantLock 全面解析一、前言在 Java 多线程编程中，线程安全是核心问题。synchronized 与 ReentrantLock 是最常用的两种同步方案，都能实现可重入独占锁，保证临界区代码的原子性、可见性与有序性。 本文从底层原理、使用方式、核心特性、对比选型四个维度，帮你彻底搞懂二者的区别与适用场景。 二、synchronized 详解2.1 基本介绍synchronized 是 JVM 内置的隐式锁，由 JVM 自动管理加锁与释放，无需手动编码，使用简单、安全。 2.2 底层原理 字节码：通过 monitorenter&#x2F;monitorexit 指令实现 运行时：依赖对象头 Mark Word 与 Monitor（监视器锁） JDK 1.6+ 优化：偏向锁 → 轻量级锁 → 重量级锁 自动升级  2.3 三种使用方式// 1. 修饰实例方法（锁当前对象 this） public synchronized void method() {     // 临界区 }  // 2. 修饰静态方法（锁当前类 C...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cole</div><div class="author-info-description">切尔西忠实拥趸💙<br>小区级业余门将⚽️<br>还没入门的码农💻<br>笔名：鸟子🐦</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">7</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">6</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ZYH1207"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ZYH1207" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:2385377554@qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E7%BA%BF%E7%A8%8B%E6%B1%A0%EF%BC%9A%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF"><span class="toc-number">1.</span> <span class="toc-text">自定义线程池：拒绝策略的实现思路</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E8%AE%BE%E8%AE%A1%E5%88%9D%E8%A1%B7%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5%EF%BC%9F"><span class="toc-number">1.1.</span> <span class="toc-text">一、设计初衷：为什么需要拒绝策略？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%A0%B8%E5%BF%83%E8%AE%BE%E8%AE%A1%E6%80%9D%E6%83%B3"><span class="toc-number">1.2.</span> <span class="toc-text">二、核心设计思想</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%88%86%E6%AD%A5%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF"><span class="toc-number">1.3.</span> <span class="toc-text">三、分步实现思路</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%AE%9A%E4%B9%89%E5%87%BD%E6%95%B0%E5%BC%8F%E6%8E%A5%E5%8F%A3%EF%BC%9A%E7%BB%9F%E4%B8%80%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5%E8%A7%84%E8%8C%83"><span class="toc-number">1.3.1.</span> <span class="toc-text">1. 定义函数式接口：统一拒绝策略规范</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E6%8C%81%E6%9C%89%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5"><span class="toc-number">1.3.2.</span> <span class="toc-text">2. 线程池持有拒绝策略</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E4%BB%BB%E5%8A%A1%E6%8F%90%E4%BA%A4%EF%BC%9A%E5%88%A4%E6%96%AD%E6%98%AF%E5%90%A6%E8%A7%A6%E5%8F%91%E6%8B%92%E7%BB%9D%E6%B5%81%E7%A8%8B"><span class="toc-number">1.3.3.</span> <span class="toc-text">3. 任务提交：判断是否触发拒绝流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97%EF%BC%9A%E6%9C%80%E7%BB%88%E5%88%A4%E6%96%AD%E5%B9%B6%E6%89%A7%E8%A1%8C%E6%8B%92%E7%BB%9D"><span class="toc-number">1.3.4.</span> <span class="toc-text">4. 阻塞队列：最终判断并执行拒绝</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E5%A4%96%E9%83%A8%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5"><span class="toc-number">1.3.5.</span> <span class="toc-text">5. 外部自定义拒绝策略</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E9%80%9A%E7%94%A8%E4%BB%BB%E5%8A%A1%E6%89%A7%E8%A1%8C%E5%88%86%E6%B5%81%E9%80%BB%E8%BE%91"><span class="toc-number">1.4.</span> <span class="toc-text">四、通用任务执行分流逻辑</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E8%AE%BE%E8%AE%A1%E4%BC%98%E5%8A%BF"><span class="toc-number">1.5.</span> <span class="toc-text">五、设计优势</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">1.6.</span> <span class="toc-text">六、总结</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/20/%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF/" title="拒绝策略的实现思路">拒绝策略的实现思路</a><time datetime="2026-04-20T12:03:59.000Z" title="发表于 2026-04-20 20:03:59">2026-04-20</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/10/Synchronized-%E4%B8%8E-ReentrantLock/" title="Synchronized 与 ReentrantLock">Synchronized 与 ReentrantLock</a><time datetime="2026-04-10T08:13:16.000Z" title="发表于 2026-04-10 16:13:16">2026-04-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/03/31/Harness-Engineering%E5%AE%9E%E8%B7%B5/" title="Harness Engineering实践">Harness Engineering实践</a><time datetime="2026-03-31T15:22:37.000Z" title="发表于 2026-03-31 23:22:37">2026-03-31</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/03/31/%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92/" title="动态规划">动态规划</a><time datetime="2026-03-31T03:10:24.000Z" title="发表于 2026-03-31 11:10:24">2026-03-31</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/03/22/%E6%98%A5%E4%BA%8B%E9%9A%8F%E7%AC%94/" title="春事随笔">春事随笔</a><time datetime="2026-03-22T04:00:00.000Z" title="发表于 2026-03-22 12:00:00">2026-03-22</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"></div><div class="footer_custom_text"><div id="footer-custom-content" style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+  <div id="copyright_info" style="color: #ffffff; font-size: 0.95rem;"></div>
+
+  <div id="runtime_info" style="color: #ffffff; font-size: 0.85rem;">
+    <span id="runtime_span">加载中...</span>
+  </div>
+
+  <div id="footer_badges" style="margin-top: 5px;">
+    <a style="margin-inline:5px" target="_blank" href="https://github.com/ZYH1207"><img src="https://img.shields.io/badge/Github-ZYH1207-24292e?logo=github" title="我的Github"></a>
+    <a style="margin-inline:5px" target="_blank" href="mailto:2385377554@qq.com"><img src="https://img.shields.io/badge/Email-联系我-49B1F5?logo=gmail" title="发送邮件"></a>
+    <a style="margin-inline:5px" target="_blank" href="https://hexo.io/"><img src="https://img.shields.io/badge/Hexo-博客-0E88EB?logo=hexo" title="Hexo框架"></a>
+    <a style="margin-inline:5px" target="_blank" href="https://butterfly.js.org/"><img src="https://img.shields.io/badge/Theme-Butterfly-FF7242?logo=blogger" title="Butterfly主题"></a>
+  </div>
+</div>
+</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script src="/js/footer.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
