@@ -1,0 +1,246 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>从单点到集群：Redis 分布式缓存的演进之路 | Bird的个人博客</title><meta name="author" content="Cole"><meta name="copyright" content="Cole"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="从单点到集群：Redis 分布式缓存的演进之路">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从单点到集群：Redis 分布式缓存的演进之路">
+<meta property="og:url" content="https://zyh1207.github.io/2026/05/18/%E4%BB%8E%E5%8D%95%E7%82%B9%E5%88%B0%E9%9B%86%E7%BE%A4%EF%BC%9ARedis-%E5%88%86%E5%B8%83%E5%BC%8F%E7%BC%93%E5%AD%98%E7%9A%84%E6%BC%94%E8%BF%9B%E4%B9%8B%E8%B7%AF/index.html">
+<meta property="og:site_name" content="Bird的个人博客">
+<meta property="og:description" content="从单点到集群：Redis 分布式缓存的演进之路">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zyh1207.github.io/2026/05/18/%E4%BB%8E%E5%8D%95%E7%82%B9%E5%88%B0%E9%9B%86%E7%BE%A4%EF%BC%9ARedis-%E5%88%86%E5%B8%83%E5%BC%8F%E7%BC%93%E5%AD%98%E7%9A%84%E6%BC%94%E8%BF%9B%E4%B9%8B%E8%B7%AF/fm.png">
+<meta property="article:published_time" content="2026-05-18T08:55:51.000Z">
+<meta property="article:modified_time" content="2026-05-26T09:01:39.071Z">
+<meta property="article:author" content="Cole">
+<meta property="article:tag" content="Redis">
+<meta property="article:tag" content="分布式缓存">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://zyh1207.github.io/2026/05/18/%E4%BB%8E%E5%8D%95%E7%82%B9%E5%88%B0%E9%9B%86%E7%BE%A4%EF%BC%9ARedis-%E5%88%86%E5%B8%83%E5%BC%8F%E7%BC%93%E5%AD%98%E7%9A%84%E6%BC%94%E8%BF%9B%E4%B9%8B%E8%B7%AF/fm.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "从单点到集群：Redis 分布式缓存的演进之路",
+  "url": "https://zyh1207.github.io/2026/05/18/%E4%BB%8E%E5%8D%95%E7%82%B9%E5%88%B0%E9%9B%86%E7%BE%A4%EF%BC%9ARedis-%E5%88%86%E5%B8%83%E5%BC%8F%E7%BC%93%E5%AD%98%E7%9A%84%E6%BC%94%E8%BF%9B%E4%B9%8B%E8%B7%AF/",
+  "image": "https://zyh1207.github.io/2026/05/18/%E4%BB%8E%E5%8D%95%E7%82%B9%E5%88%B0%E9%9B%86%E7%BE%A4%EF%BC%9ARedis-%E5%88%86%E5%B8%83%E5%BC%8F%E7%BC%93%E5%AD%98%E7%9A%84%E6%BC%94%E8%BF%9B%E4%B9%8B%E8%B7%AF/fm.png",
+  "datePublished": "2026-05-18T08:55:51.000Z",
+  "dateModified": "2026-05-26T09:01:39.071Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cole",
+      "url": "https://ZYH1207.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://zyh1207.github.io/2026/05/18/%E4%BB%8E%E5%8D%95%E7%82%B9%E5%88%B0%E9%9B%86%E7%BE%A4%EF%BC%9ARedis-%E5%88%86%E5%B8%83%E5%BC%8F%E7%BC%93%E5%AD%98%E7%9A%84%E6%BC%94%E8%BF%9B%E4%B9%8B%E8%B7%AF/index.html"><link rel="preconnect" href="//unpkg.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":null,"highlightCopy":true,"highlightLang":true,"highlightHeightLimit":800,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://unpkg.com/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '从单点到集群：Redis 分布式缓存的演进之路',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="Bird的个人博客" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background-color: #fbfdff;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">9</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/2026/05/18/%E4%BB%8E%E5%8D%95%E7%82%B9%E5%88%B0%E9%9B%86%E7%BE%A4%EF%BC%9ARedis-%E5%88%86%E5%B8%83%E5%BC%8F%E7%BC%93%E5%AD%98%E7%9A%84%E6%BC%94%E8%BF%9B%E4%B9%8B%E8%B7%AF/fm.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Bird的个人博客</span></a><a class="nav-page-title" href="/"><span class="site-name">从单点到集群：Redis 分布式缓存的演进之路</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">从单点到集群：Redis 分布式缓存的演进之路</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-05-18T08:55:51.000Z" title="发表于 2026-05-18 16:55:51">2026-05-18</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-05-26T09:01:39.071Z" title="更新于 2026-05-26 17:01:39">2026-05-26</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%BC%80%E5%8F%91/">开发</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>在分布式系统的架构中，缓存几乎是绕不开的一环。而Redis，凭借其高性能、丰富的数据结构和多样的部署模式，成为了缓存领域的绝对王者。但很多同学刚接触Redis时，可能只停留在<code>set</code>&#x2F;<code>get</code>的使用层面，对它从“单点单机”到“分布式集群”的演进过程一知半解。</p>
+<p>今天，我就带着大家顺着「单点Redis → 持久化 → 主从复制 → 哨兵模式 → 分片集群」这条线，聊聊Redis是如何一步步解决高可用、高性能、可扩展三大难题的，也算是对自己这段时间学习Redis的一个总结。</p>
+<hr>
+<h2 id="一、单点Redis：看似简单，却隐患重重"><a href="#一、单点Redis：看似简单，却隐患重重" class="headerlink" title="一、单点Redis：看似简单，却隐患重重"></a>一、单点Redis：看似简单，却隐患重重</h2><p>刚接触Redis时，我们最先接触的就是“单点部署”——一个Redis实例，服务直接连接它读写数据。这种模式开发简单、部署方便，但在生产环境中却隐患重重：</p>
+<ol>
+<li><p><strong>性能瓶颈</strong><br>Redis核心逻辑是单线程的，单节点的处理能力有明确上限，面对高并发的读&#x2F;写请求，很容易成为系统的瓶颈；同时单节点的内存也有限，无法存储海量的缓存数据。</p>
+</li>
+<li><p><strong>可靠性灾难</strong><br>这是更致命的问题。如果这个唯一的Redis节点挂了（比如进程崩溃、服务器宕机），会直接导致缓存失效，请求全部打到数据库，引发“缓存雪崩”，直接把数据库压垮；更严重的是，如果没有数据备份，节点挂了之后数据直接丢失，造成不可逆的损失。</p>
+</li>
+<li><p><strong>运维痛点</strong><br>单点Redis的扩容、维护都很麻烦，一旦需要升级或者重启，整个服务的缓存都不可用了。</p>
+</li>
+</ol>
+<p>所以，我们需要给Redis加上“保险”和“分身”，首先解决的就是数据不丢失的问题——也就是Redis持久化。</p>
+<hr>
+<h2 id="二、Redis持久化：给数据上一道“保险”"><a href="#二、Redis持久化：给数据上一道“保险”" class="headerlink" title="二、Redis持久化：给数据上一道“保险”"></a>二、Redis持久化：给数据上一道“保险”</h2><p>持久化，说白了就是把Redis的内存数据，写到硬盘上保存下来，这样就算Redis挂了，重启的时候也能从硬盘把数据恢复回来，解决数据丢失的问题。Redis提供了两种持久化方案，各有优劣：</p>
+<h3 id="1-RDB（Redis-Database）：定时的“全量快照”"><a href="#1-RDB（Redis-Database）：定时的“全量快照”" class="headerlink" title="1. RDB（Redis Database）：定时的“全量快照”"></a>1. RDB（Redis Database）：定时的“全量快照”</h3><ul>
+<li><strong>原理</strong>：按照配置的规则（比如<code>save 60 1000</code>，表示60秒内有1000次修改就触发），定时把Redis的全量数据生成一个快照文件<code>.rdb</code>，保存到硬盘。</li>
+<li><strong>优点</strong>：恢复速度快，适合做冷备份；对Redis主线程影响小（由fork出的子进程完成快照生成）。</li>
+<li><strong>缺点</strong>：可能丢数据，两次快照之间的数据如果Redis挂了，这部分修改就会丢失；如果数据量很大，fork子进程会占用较多内存，生成RDB文件也会有一定的IO开销。</li>
+</ul>
+<h3 id="2-AOF（Append-Only-File）：实时的“操作日志”"><a href="#2-AOF（Append-Only-File）：实时的“操作日志”" class="headerlink" title="2. AOF（Append Only File）：实时的“操作日志”"></a>2. AOF（Append Only File）：实时的“操作日志”</h3><ul>
+<li><strong>原理</strong>：把Redis收到的每一条写命令，都追加写入到<code>.aof</code>文件里。Redis重启的时候，会重新执行一遍AOF里的命令，恢复数据。</li>
+<li><strong>优点</strong>：数据更安全，支持每秒同步、每次写同步等策略，最多只丢1秒的数据；AOF文件是可读的，遇到问题可以手动修改。</li>
+<li><strong>缺点</strong>：文件体积比RDB大，恢复速度比RDB慢；高并发下频繁刷盘会带来IO压力。</li>
+</ul>
+<p>在实际生产中，很多时候我们会同时开启RDB和AOF，用AOF保证数据不丢，用RDB做快速恢复和冷备份。但持久化解决了数据不丢的问题，却没解决“服务挂了就不可用”的问题——主节点挂了，就算有RDB&#x2F;AOF，恢复也需要时间，这段时间服务还是不可用的。而且读写都压在一个节点上，性能瓶颈还是没解决。于是，主从复制就来了。</p>
+<hr>
+<h2 id="三、Redis主从复制：读写分离，给主节点找个“帮手”"><a href="#三、Redis主从复制：读写分离，给主节点找个“帮手”" class="headerlink" title="三、Redis主从复制：读写分离，给主节点找个“帮手”"></a>三、Redis主从复制：读写分离，给主节点找个“帮手”</h2><p>主从复制，就是搭建一个主节点（Master）和多个从节点（Slave&#x2F;Replica），主节点负责处理写请求，同时把数据同步给所有从节点；从节点只负责处理读请求，不处理写请求。</p>
+<h3 id="核心作用"><a href="#核心作用" class="headerlink" title="核心作用"></a>核心作用</h3><ol>
+<li><strong>读写分离，分担读压力</strong>：大部分业务场景都是读多写少，把读请求打到从节点，能大幅提升Redis的整体读性能。</li>
+<li><strong>数据备份</strong>：从节点实时同步主节点的数据，相当于多了几份热备份，就算主节点挂了，从节点也有完整的数据。</li>
+</ol>
+<h3 id="工作原理"><a href="#工作原理" class="headerlink" title="工作原理"></a>工作原理</h3><p>从节点启动后，发送<code>SYNC</code>命令给主节点，主节点会fork一个子进程，生成RDB快照发给从节点，同时把快照期间的写命令缓存起来发给从节点；从节点先加载RDB文件，再执行缓存的命令，完成全量同步。之后主节点收到的写命令，都会实时同步给从节点，实现增量同步。</p>
+<p>但主从复制有个致命的问题：<strong>故障无法自动转移</strong>。如果主节点挂了，从节点不会自动变成新的主节点，需要人工手动操作，把一个从节点提升为主节点，然后修改客户端的配置，把写请求切过去。在高可用的场景下，人工操作太慢了，这段时间服务还是写不可用的。而且，主节点的写性能瓶颈还是没解决，所有写请求都要打到主节点，当写并发很高的时候，主节点还是会扛不住。</p>
+<p>为了解决自动故障转移的问题，Redis推出了哨兵模式。</p>
+<hr>
+<h2 id="四、Redis哨兵模式：自动“故障管家”，实现高可用"><a href="#四、Redis哨兵模式：自动“故障管家”，实现高可用" class="headerlink" title="四、Redis哨兵模式：自动“故障管家”，实现高可用"></a>四、Redis哨兵模式：自动“故障管家”，实现高可用</h2><p>哨兵（Sentinel）本质上是一个监控程序，它的核心目标就是实现主从集群的<strong>自动故障转移</strong>，让Redis在主节点挂了的时候，能自动选一个从节点升级为新的主节点，保证服务持续可用。</p>
+<h3 id="哨兵的核心能力"><a href="#哨兵的核心能力" class="headerlink" title="哨兵的核心能力"></a>哨兵的核心能力</h3><ol>
+<li><strong>监控</strong>：哨兵会定期和主节点、从节点通信，检查它们是否正常运行。</li>
+<li><strong>自动故障转移</strong>：如果哨兵判定主节点“主观下线”，并且多个哨兵协商后判定为“客观下线”，就会从从节点中选一个优先级最高的，把它升级为新的主节点，然后通知其他从节点去复制新的主节点。</li>
+<li><strong>配置通知</strong>：哨兵会把新的主节点信息通知给客户端，让客户端自动切换写请求的地址。</li>
+</ol>
+<p>为了避免哨兵自己单点故障，哨兵通常会部署成集群模式，多个哨兵互相监控，通过投票机制来决定主节点的状态，防止误判。</p>
+<p>哨兵模式解决了主从集群的自动故障转移问题，实现了Redis的高可用。但它还是有局限：<strong>写操作和数据存储的瓶颈依然存在</strong>。整个哨兵集群里，还是只有一个主节点负责写请求，当业务的写并发很高，或者缓存数据量超过单节点的内存上限时，哨兵模式还是扛不住。这时候，就轮到Redis分片集群登场了。</p>
+<hr>
+<h2 id="五、Redis分片集群：横向扩展，突破性能与存储上限"><a href="#五、Redis分片集群：横向扩展，突破性能与存储上限" class="headerlink" title="五、Redis分片集群：横向扩展，突破性能与存储上限"></a>五、Redis分片集群：横向扩展，突破性能与存储上限</h2><p>Redis分片集群（Redis Cluster）是Redis官方提供的分布式解决方案，它的核心思路是<strong>把数据分散存储到多个主节点上，每个主节点只负责一部分数据的读写，从而实现横向扩展</strong>。</p>
+<h3 id="核心原理"><a href="#核心原理" class="headerlink" title="核心原理"></a>核心原理</h3><ol>
+<li><strong>哈希槽（Hash Slot）</strong>：Redis Cluster把整个数据库分成了16384个哈希槽，每个主节点负责其中一部分槽位（比如节点A负责0-5000，节点B负责5001-10000，节点C负责10001-16383）。</li>
+<li><strong>数据分片</strong>：当客户端写数据的时候，会对key做CRC16哈希运算，然后对16384取模，得到对应的哈希槽，然后把请求发到负责这个槽的主节点上。</li>
+<li><strong>主从分片</strong>：每个主节点都可以配置对应的从节点，实现故障转移，保证高可用。</li>
+<li><strong>节点间通信</strong>：集群内的节点通过Gossip协议互相通信，维护集群的状态，客户端可以连接任意一个节点，就能获取到整个集群的路由信息。</li>
+</ol>
+<p>分片集群完美解决了哨兵模式的两个痛点：</p>
+<ul>
+<li>写性能：写请求被分散到多个主节点上，整体的写并发能力得到了横向扩展。</li>
+<li>存储上限：数据被分散存储到多个节点上，突破了单节点的内存限制，可以存储海量的缓存数据。</li>
+</ul>
+<p>当然，分片集群也不是完美的，它也有一些需要注意的点：比如跨槽的事务不支持、批量操作（比如<code>mget</code>）如果key分布在不同的槽位会有性能问题、扩容时哈希槽的迁移需要谨慎处理等。</p>
+<hr>
+<h2 id="六、写在最后：Redis演进的核心逻辑"><a href="#六、写在最后：Redis演进的核心逻辑" class="headerlink" title="六、写在最后：Redis演进的核心逻辑"></a>六、写在最后：Redis演进的核心逻辑</h2><p>从单点到集群，Redis的每一步演进，都是为了解决前一个方案的痛点：</p>
+<ul>
+<li>持久化解决了<strong>数据丢失</strong>的问题；</li>
+<li>主从复制解决了<strong>读性能瓶颈</strong>和<strong>数据备份</strong>的问题；</li>
+<li>哨兵模式解决了<strong>主节点故障自动转移</strong>的问题；</li>
+<li>分片集群解决了<strong>写性能和存储容量的横向扩展</strong>问题。</li>
+</ul>
+<p>在实际的业务场景中，我们也不是一味追求最复杂的分片集群，而是要根据业务的并发量、数据量、可用性要求来选择合适的部署模式：比如小项目用带持久化的单点就够了，读多写少的场景可以用主从+读写分离，对可用性要求高的用哨兵模式，海量数据高并发的场景再上分片集群。</p>
+<p>学习Redis的过程，也是理解分布式系统“高可用、高性能、可扩展”三大目标的过程。Redis的演进之路，其实就是分布式缓存为了满足业务需求，不断解决痛点、迭代优化的缩影。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://ZYH1207.github.io">Cole</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://zyh1207.github.io/2026/05/18/%E4%BB%8E%E5%8D%95%E7%82%B9%E5%88%B0%E9%9B%86%E7%BE%A4%EF%BC%9ARedis-%E5%88%86%E5%B8%83%E5%BC%8F%E7%BC%93%E5%AD%98%E7%9A%84%E6%BC%94%E8%BF%9B%E4%B9%8B%E8%B7%AF/">https://zyh1207.github.io/2026/05/18/%E4%BB%8E%E5%8D%95%E7%82%B9%E5%88%B0%E9%9B%86%E7%BE%A4%EF%BC%9ARedis-%E5%88%86%E5%B8%83%E5%BC%8F%E7%BC%93%E5%AD%98%E7%9A%84%E6%BC%94%E8%BF%9B%E4%B9%8B%E8%B7%AF/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://ZYH1207.github.io" target="_blank">Bird的个人博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Redis/">Redis</a><a class="post-meta__tags" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%BC%93%E5%AD%98/">分布式缓存</a></div><div class="post-share"><div class="social-share" data-image="/2026/05/18/%E4%BB%8E%E5%8D%95%E7%82%B9%E5%88%B0%E9%9B%86%E7%BE%A4%EF%BC%9ARedis-%E5%88%86%E5%B8%83%E5%BC%8F%E7%BC%93%E5%AD%98%E7%9A%84%E6%BC%94%E8%BF%9B%E4%B9%8B%E8%B7%AF/fm.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://unpkg.com/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://unpkg.com/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/05/09/Redisson-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%85%A8%E8%A7%A3%E6%9E%90%EF%BC%9A%E4%BB%8E%E5%8D%95%E9%94%81%E5%88%B0-MultiLock/" title="Redisson 分布式锁全解析：从单锁到 MultiLock"><img class="cover" src="/2026/05/09/Redisson-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%85%A8%E8%A7%A3%E6%9E%90%EF%BC%9A%E4%BB%8E%E5%8D%95%E9%94%81%E5%88%B0-MultiLock/fm.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Redisson 分布式锁全解析：从单锁到 MultiLock</div></div><div class="info-2"><div class="info-item-1">一、Redisson基础分布式锁：从流程图看核心原理Redisson的基础分布式锁RLock，是业界实现Redis分布式锁的标杆方案，它解决了原生SETNX锁的原子性、续期、重入等问题。我们先从经典的锁流程图，拆解其获取与释放的完整逻辑。 1.1 锁的获取流程Redisson的加锁逻辑通过原子Lua脚本保证操作的原子性，避免并发场景下的竞态问题，整个流程可分为「加锁成功」和「加锁失败等待」两个分支： 分支1：加锁成功（TTL为null）当客户端尝试获取锁时，Lua脚本会检查锁对应的Redis Key：  若Key不存在：直接创建锁（采用Hash结构存储，Key为锁名，Field为「客户端ID:线程ID」，Value为重入次数），并设置初始过期时间； 若Key存在且为当前线程持有：重入次数+1，返回null表示加锁成功。  此时会根据用户设置的leaseTime（锁持有超时时间）做分支判断：  若leaseTime != -1：表示用户手动指定了锁超时时间，直接返回true，锁会在超时后自动释放； 若leaseTime == -1（Redisson默认场景）：开启WatchDog看...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/05/09/Redisson-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%85%A8%E8%A7%A3%E6%9E%90%EF%BC%9A%E4%BB%8E%E5%8D%95%E9%94%81%E5%88%B0-MultiLock/" title="Redisson 分布式锁全解析：从单锁到 MultiLock"><img class="cover" src="/2026/05/09/Redisson-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%85%A8%E8%A7%A3%E6%9E%90%EF%BC%9A%E4%BB%8E%E5%8D%95%E9%94%81%E5%88%B0-MultiLock/fm.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-09</div><div class="info-item-2">Redisson 分布式锁全解析：从单锁到 MultiLock</div></div><div class="info-2"><div class="info-item-1">一、Redisson基础分布式锁：从流程图看核心原理Redisson的基础分布式锁RLock，是业界实现Redis分布式锁的标杆方案，它解决了原生SETNX锁的原子性、续期、重入等问题。我们先从经典的锁流程图，拆解其获取与释放的完整逻辑。 1.1 锁的获取流程Redisson的加锁逻辑通过原子Lua脚本保证操作的原子性，避免并发场景下的竞态问题，整个流程可分为「加锁成功」和「加锁失败等待」两个分支： 分支1：加锁成功（TTL为null）当客户端尝试获取锁时，Lua脚本会检查锁对应的Redis Key：  若Key不存在：直接创建锁（采用Hash结构存储，Key为锁名，Field为「客户端ID:线程ID」，Value为重入次数），并设置初始过期时间； 若Key存在且为当前线程持有：重入次数+1，返回null表示加锁成功。  此时会根据用户设置的leaseTime（锁持有超时时间）做分支判断：  若leaseTime != -1：表示用户手动指定了锁超时时间，直接返回true，锁会在超时后自动释放； 若leaseTime == -1（Redisson默认场景）：开启WatchDog看...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cole</div><div class="author-info-description">切尔西忠实拥趸💙<br>小区级业余门将⚽️<br>还没入门的码农💻<br>笔名：鸟子🐦</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">9</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ZYH1207"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ZYH1207" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:2385377554@qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%8D%95%E7%82%B9Redis%EF%BC%9A%E7%9C%8B%E4%BC%BC%E7%AE%80%E5%8D%95%EF%BC%8C%E5%8D%B4%E9%9A%90%E6%82%A3%E9%87%8D%E9%87%8D"><span class="toc-number">1.</span> <span class="toc-text">一、单点Redis：看似简单，却隐患重重</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81Redis%E6%8C%81%E4%B9%85%E5%8C%96%EF%BC%9A%E7%BB%99%E6%95%B0%E6%8D%AE%E4%B8%8A%E4%B8%80%E9%81%93%E2%80%9C%E4%BF%9D%E9%99%A9%E2%80%9D"><span class="toc-number">2.</span> <span class="toc-text">二、Redis持久化：给数据上一道“保险”</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-RDB%EF%BC%88Redis-Database%EF%BC%89%EF%BC%9A%E5%AE%9A%E6%97%B6%E7%9A%84%E2%80%9C%E5%85%A8%E9%87%8F%E5%BF%AB%E7%85%A7%E2%80%9D"><span class="toc-number">2.1.</span> <span class="toc-text">1. RDB（Redis Database）：定时的“全量快照”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-AOF%EF%BC%88Append-Only-File%EF%BC%89%EF%BC%9A%E5%AE%9E%E6%97%B6%E7%9A%84%E2%80%9C%E6%93%8D%E4%BD%9C%E6%97%A5%E5%BF%97%E2%80%9D"><span class="toc-number">2.2.</span> <span class="toc-text">2. AOF（Append Only File）：实时的“操作日志”</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81Redis%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6%EF%BC%9A%E8%AF%BB%E5%86%99%E5%88%86%E7%A6%BB%EF%BC%8C%E7%BB%99%E4%B8%BB%E8%8A%82%E7%82%B9%E6%89%BE%E4%B8%AA%E2%80%9C%E5%B8%AE%E6%89%8B%E2%80%9D"><span class="toc-number">3.</span> <span class="toc-text">三、Redis主从复制：读写分离，给主节点找个“帮手”</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E4%BD%9C%E7%94%A8"><span class="toc-number">3.1.</span> <span class="toc-text">核心作用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">3.2.</span> <span class="toc-text">工作原理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81Redis%E5%93%A8%E5%85%B5%E6%A8%A1%E5%BC%8F%EF%BC%9A%E8%87%AA%E5%8A%A8%E2%80%9C%E6%95%85%E9%9A%9C%E7%AE%A1%E5%AE%B6%E2%80%9D%EF%BC%8C%E5%AE%9E%E7%8E%B0%E9%AB%98%E5%8F%AF%E7%94%A8"><span class="toc-number">4.</span> <span class="toc-text">四、Redis哨兵模式：自动“故障管家”，实现高可用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%93%A8%E5%85%B5%E7%9A%84%E6%A0%B8%E5%BF%83%E8%83%BD%E5%8A%9B"><span class="toc-number">4.1.</span> <span class="toc-text">哨兵的核心能力</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81Redis%E5%88%86%E7%89%87%E9%9B%86%E7%BE%A4%EF%BC%9A%E6%A8%AA%E5%90%91%E6%89%A9%E5%B1%95%EF%BC%8C%E7%AA%81%E7%A0%B4%E6%80%A7%E8%83%BD%E4%B8%8E%E5%AD%98%E5%82%A8%E4%B8%8A%E9%99%90"><span class="toc-number">5.</span> <span class="toc-text">五、Redis分片集群：横向扩展，突破性能与存储上限</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86"><span class="toc-number">5.1.</span> <span class="toc-text">核心原理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%86%99%E5%9C%A8%E6%9C%80%E5%90%8E%EF%BC%9ARedis%E6%BC%94%E8%BF%9B%E7%9A%84%E6%A0%B8%E5%BF%83%E9%80%BB%E8%BE%91"><span class="toc-number">6.</span> <span class="toc-text">六、写在最后：Redis演进的核心逻辑</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/18/%E4%BB%8E%E5%8D%95%E7%82%B9%E5%88%B0%E9%9B%86%E7%BE%A4%EF%BC%9ARedis-%E5%88%86%E5%B8%83%E5%BC%8F%E7%BC%93%E5%AD%98%E7%9A%84%E6%BC%94%E8%BF%9B%E4%B9%8B%E8%B7%AF/" title="从单点到集群：Redis 分布式缓存的演进之路">从单点到集群：Redis 分布式缓存的演进之路</a><time datetime="2026-05-18T08:55:51.000Z" title="发表于 2026-05-18 16:55:51">2026-05-18</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/09/Redisson-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%85%A8%E8%A7%A3%E6%9E%90%EF%BC%9A%E4%BB%8E%E5%8D%95%E9%94%81%E5%88%B0-MultiLock/" title="Redisson 分布式锁全解析：从单锁到 MultiLock">Redisson 分布式锁全解析：从单锁到 MultiLock</a><time datetime="2026-05-09T03:15:10.000Z" title="发表于 2026-05-09 11:15:10">2026-05-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/20/%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF/" title="拒绝策略的实现思路">拒绝策略的实现思路</a><time datetime="2026-04-20T12:03:59.000Z" title="发表于 2026-04-20 20:03:59">2026-04-20</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/10/Synchronized-%E4%B8%8E-ReentrantLock/" title="Synchronized 与 ReentrantLock">Synchronized 与 ReentrantLock</a><time datetime="2026-04-10T08:13:16.000Z" title="发表于 2026-04-10 16:13:16">2026-04-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/03/31/Harness-Engineering%E5%AE%9E%E8%B7%B5/" title="Harness Engineering实践">Harness Engineering实践</a><time datetime="2026-03-31T15:22:37.000Z" title="发表于 2026-03-31 23:22:37">2026-03-31</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"></div><div class="footer_custom_text"><div id="footer-custom-content" style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+  <div id="copyright_info" style="color: #ffffff; font-size: 0.95rem;"></div>
+
+  <div id="runtime_info" style="color: #ffffff; font-size: 0.85rem;">
+    <span id="runtime_span">加载中...</span>
+  </div>
+
+  <div id="footer_badges" style="margin-top: 5px;">
+    <a style="margin-inline:5px" target="_blank" href="https://github.com/ZYH1207"><img src="https://img.shields.io/badge/Github-ZYH1207-24292e?logo=github" title="我的Github"></a>
+    <a style="margin-inline:5px" target="_blank" href="mailto:2385377554@qq.com"><img src="https://img.shields.io/badge/Email-联系我-49B1F5?logo=gmail" title="发送邮件"></a>
+    <a style="margin-inline:5px" target="_blank" href="https://hexo.io/"><img src="https://img.shields.io/badge/Hexo-博客-0E88EB?logo=hexo" title="Hexo框架"></a>
+    <a style="margin-inline:5px" target="_blank" href="https://butterfly.js.org/"><img src="https://img.shields.io/badge/Theme-Butterfly-FF7242?logo=blogger" title="Butterfly主题"></a>
+  </div>
+</div>
+</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script src="/js/footer.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
