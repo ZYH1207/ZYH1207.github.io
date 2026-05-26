@@ -2,6 +2,7 @@
 title: 从单点到集群：Redis 分布式缓存的演进之路
 author: Cole
 tags:
+  - Java
   - Redis
   - 分布式缓存
 categories: 开发
