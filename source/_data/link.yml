@@ -1,7 +1,7 @@
 - class_name: 友情链接
-  class_desc: 那些很棒的博客
+  class_desc: 遇见的博客，偏爱的站点
   link_list:
-    - name: 我的博客
-      link: https://xxx.com
-      avatar: https://xxx.png
-      descr: 一个热爱分享的技术博客
+    - name: CHELSEA
+      link: https://www.chelseafc.com
+      avatar: /img/friendlink1.png
+      descr: 切尔西足球俱乐部
