@@ -10,7 +10,24 @@
   <rights>All rights reserved 2026, Cole</rights>
   <subtitle>记录生活与成长</subtitle>
   <title>Bird的个人博客</title>
-  <updated>2026-06-05T07:03:28.245Z</updated>
+  <updated>2026-06-10T02:40:51.668Z</updated>
+  <entry>
+    <author>
+      <name>Cole</name>
+    </author>
+    <category term="开发" scheme="https://zyh1207.github.io/categories/%E5%BC%80%E5%8F%91/"/>
+    <category term="Java" scheme="https://zyh1207.github.io/tags/Java/"/>
+    <category term="Hermes" scheme="https://zyh1207.github.io/tags/Hermes/"/>
+    <category term="飞书" scheme="https://zyh1207.github.io/tags/%E9%A3%9E%E4%B9%A6/"/>
+    <category term="经验" scheme="https://zyh1207.github.io/tags/%E7%BB%8F%E9%AA%8C/"/>
+    <category term="方法论" scheme="https://zyh1207.github.io/tags/%E6%96%B9%E6%B3%95%E8%AE%BA/"/>
+    <id>https://zyh1207.github.io/2026/06/10/Hermes-%E9%A3%9E%E4%B9%A6%E6%90%AD%E5%BB%BA%E4%B8%93%E5%B1%9EJava%E6%B1%82%E8%81%8CAI%E5%8A%A9%E6%89%8B/</id>
+    <link href="https://zyh1207.github.io/2026/06/10/Hermes-%E9%A3%9E%E4%B9%A6%E6%90%AD%E5%BB%BA%E4%B8%93%E5%B1%9EJava%E6%B1%82%E8%81%8CAI%E5%8A%A9%E6%89%8B/"/>
+    <published>2026-06-10T02:31:04.000Z</published>
+    <summary>Hermes+飞书搭建专属Java求职AI助手</summary>
+    <title>Hermes+飞书搭建专属Java求职AI助手</title>
+    <updated>2026-06-10T02:40:51.668Z</updated>
+  </entry>
   <entry>
     <author>
       <name>Cole</name>
